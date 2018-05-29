@@ -1,0 +1,118 @@
+---
+title: "Modeling and prediction for movies"
+output: 
+  html_document: 
+    fig_height: 4
+    highlight: pygments
+    theme: spacelab
+---
+
+## Setup
+
+### Load packages
+
+```{r load-packages, message = FALSE}
+library(ggplot2)
+library(dplyr)
+library(statsr)
+library(GGally)
+```
+
+### Load data
+
+
+```{r load-data}
+load("eaca_movies.Rdata")
+d1<-as.data.frame(movies)
+```
+
+
+
+* * *
+
+## Part 1: Data
+
+The data set is a randomly selected group of 651 movies produced and released before 2016.  Since this data is observational and not related to an expirement with random assignment, we can not look for causal relationships.  However, since the movies were randomly selected, we can look for associations and apply them to the population of interest, movies produced and released for consumption in the US market.
+
+
+* * *
+
+## Part 2: Research question
+
+I'm interested in using the associations in the data set to try to explain the variance in the values of the critics score from the Rotten Tomatoes website.  I will try to develop the best possible multi-variant regression model to accomplish this.  I'll then use the model to predict the critics score for movies produced after 2016 that the model has not seen before.
+
+
+
+* * *
+
+## Part 3: Exploratory data analysis
+
+I'll first eliminate variables that don't contribute to my analysis.  The movie's title, director, and featured actors will not be helpful as they would be categorical variables with almost as many levels as observations.  The individual urls for both IMDb and Rotten Tomatoes will also not contain useful information.  The data also contains both ratings and scores for the movies from both websites.  The ratings are just groups of scores, so  I am going to use the scores and drop the ratings to keep all movie ratings as continuous numerical variables.
+
+This code will select the varialbles I want to use, check for and drop any observations with missing data and check the dimensions of the updated data set:
+
+```{r}
+# variables to keep 
+
+keep<-c("title_type", "genre","runtime","mpaa_rating", "thtr_rel_year",
+        "thtr_rel_month", "thtr_rel_day", "dvd_rel_year", "dvd_rel_month",
+        "dvd_rel_day", "imdb_rating", "imdb_num_votes", "audience_score",
+        "critics_score", "best_pic_nom",
+        "best_pic_win", "best_actor_win", "best_actress_win", "best_dir_win",
+        "top200_box")
+
+kept<-d1 %>%
+  select(keep)
+
+dim(kept)
+
+# remove records with nas
+
+sum(is.na(kept))
+cc<-complete.cases(kept)
+kept<-kept[cc,]
+sum(is.na(kept))
+dim(kept)
+
+```
+
+THis code will select the numerical values in the data set and plot them in a correlation matrix.  This will allow us to see how these variables correlate with our dependant variable, and help us look for colinearity between independent variables.
+
+```{r, fig.width=11, fig.height=13}
+
+# check correlarions for colinearity
+
+keptnum<-select_if(kept, is.numeric)
+
+p1<-ggpairs(keptnum)+
+  theme(legend.position = "none", axis.text.x = element_text(angle = 60,hjust = 1))
+
+p1
+```
+
+
+From the plot we see that the IMDb score and the audience score from Rotten Tomatoes have the highest correlation coefficient with the critic's score.  They are also highly correlated with each other, so we will need to use one or the other in our model.
+
+We'll now look at how the critic's score breaks out by some of the categorical variables
+
+
+* * *
+
+## Part 4: Modeling
+
+NOTE: Insert code chunks as needed by clicking on the "Insert a new code chunk" 
+button above. Make sure that your code is visible in the project you submit. 
+Delete this note when before you submit your work.
+
+* * *
+
+## Part 5: Prediction
+
+NOTE: Insert code chunks as needed by clicking on the "Insert a new code chunk" 
+button above. Make sure that your code is visible in the project you submit. 
+Delete this note when before you submit your work.
+
+* * *
+
+## Part 6: Conclusion
+
