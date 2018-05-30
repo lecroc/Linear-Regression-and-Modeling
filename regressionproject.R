@@ -77,19 +77,11 @@ p3<-ggplot(kept, aes(x=factor(mpaa_rating), y=critics_score, fill=factor(mpaa_ra
 
 p3
 
-p4<-ggplot(kept, aes(x=factor(genre), y=critics_score, fill=factor(genre)))+
-  geom_boxplot()+facet_grid(title_type~genre)+
-  theme(legend.position = "none", axis.text.x = element_text(angle = 60,hjust = 1))+
-  ggtitle("Critic's Score by Genre and Title Type")
+p4<-ggplot(kept, aes(x=factor(title_type), y=critics_score, fill=factor(title_type)))+
+  geom_boxplot()+theme(legend.position = "none", axis.text.x = element_text(angle = 60,hjust = 1))+
+  ggtitle("Critic's Score by Title Type")
 
 p4
-
-p5<-ggplot(kept, aes(x=factor(genre), y=critics_score, fill=factor(genre)))+
-  geom_boxplot()+facet_grid(best_actor_win~genre)+
-  theme(legend.position = "none", axis.text.x = element_text(angle = 60,hjust = 1))+
-  ggtitle("Critic's Score by Genre and Best Actor Win")
-
-p5
 
 p6<-ggplot(kept, aes(x=factor(best_actor_win), y=critics_score, fill=factor(best_actor_win)))+
   geom_boxplot()+
@@ -140,16 +132,381 @@ summary(tm2)
 
 kept$audience_score<-NULL
 
-str(kept)
+# Number of votes no linear relationship with critics_score so drop
 
-# kitchen sink model
+kept$imdb_num_votes<-NULL
 
-m1<-lm(critics_score~., data=kept)
+# create df of independent variables
 
-summary(m1)
+indvar<-kept[,-12]
+
+# store variable names in vector
+
+varlist <- names(indvar)
+
+# function to run lms
+
+models <- lapply(varlist, function(x) {
+  lm(substitute(critics_score ~ i, list(i = as.name(x))), data = kept)
+})
+
+# grab adjusted r squared and output ranked in descending order
+
+adjr2<-NULL
+options(scipen=999)
+
+for (i in 1:length(models)){
+  adjr2[[i]]<-summary(models[[i]])$adj.r.squared
+}
+
+results1<-as.data.frame(cbind(varlist, adjr2))
+
+results1 %>%
+  arrange(desc(adjr2))
+
+# restart process round 2
+
+# store variable names in vector
+
+varlist2 <- varlist[-11]
+
+# function to run lms
+
+models2 <- lapply(varlist2, function(x) {
+  lm(substitute(critics_score ~ imdb_rating+i, list(i = as.name(x))), data = kept)
+})
+
+# grab adjusted r squared and output ranked in descending order
+
+adjr2<-NULL
+options(scipen=999)
+
+for (i in 1:length(models2)){
+  adjr2[[i]]<-summary(models2[[i]])$adj.r.squared
+}
+
+results2<-as.data.frame(cbind(varlist2, adjr2))
+
+results2 %>%
+  arrange(desc(adjr2))
+
+# restart process round 3
+
+# store variable names in vector
+
+varlist3 <- varlist2[-4]
+
+# function to run lms
+
+models3 <- lapply(varlist3, function(x) {
+  lm(substitute(critics_score ~ imdb_rating+mpaa_rating+i, list(i = as.name(x))), data = kept)
+})
+
+# grab adjusted r squared and output ranked in descending order
+
+adjr2<-NULL
+options(scipen=999)
+
+for (i in 1:length(models3)){
+  adjr2[[i]]<-summary(models3[[i]])$adj.r.squared
+}
+
+results3<-as.data.frame(cbind(varlist3, adjr2))
+
+results3 %>%
+  arrange(desc(adjr2))
+
+# restart process round 4
+
+# store variable names in vector
+
+varlist4 <- varlist3[-1]
+
+# function to run lms
+
+models4 <- lapply(varlist4, function(x) {
+  lm(substitute(critics_score ~ imdb_rating+mpaa_rating+title_type+i, list(i = as.name(x))), data = kept)
+})
+
+# grab adjusted r squared and output ranked in descending order
+
+adjr2<-NULL
+options(scipen=999)
+
+for (i in 1:length(models4)){
+  adjr2[[i]]<-summary(models4[[i]])$adj.r.squared
+}
+
+results4<-as.data.frame(cbind(varlist4, adjr2))
+
+results4 %>%
+  arrange(desc(adjr2))
+
+# restart process round 5
+
+# store variable names in vector
+
+varlist5 <- varlist4[-1]
+
+# function to run lms
+
+models5 <- lapply(varlist5, function(x) {
+  lm(substitute(critics_score ~ imdb_rating+mpaa_rating+title_type+genre+
+                  i, list(i = as.name(x))), data = kept)
+})
+
+# grab adjusted r squared and output ranked in descending order
+
+adjr2<-NULL
+options(scipen=999)
+
+for (i in 1:length(models5)){
+  adjr2[[i]]<-summary(models5[[i]])$adj.r.squared
+}
+
+results5<-as.data.frame(cbind(varlist5, adjr2))
+
+results5 %>%
+  arrange(desc(adjr2))
+
+# restart process round 6
+
+# store variable names in vector
+
+varlist6 <- varlist5[-2]
+
+# function to run lms
+
+models6 <- lapply(varlist6, function(x) {
+  lm(substitute(critics_score ~ imdb_rating+mpaa_rating+title_type+
+                  genre+thtr_rel_year+i, list(i = as.name(x))), data = kept)
+})
+
+# grab adjusted r squared and output ranked in descending order
+
+adjr2<-NULL
+options(scipen=999)
+
+for (i in 1:length(models6)){
+  adjr2[[i]]<-summary(models6[[i]])$adj.r.squared
+}
+
+results6<-as.data.frame(cbind(varlist6, adjr2))
+
+results6 %>%
+  arrange(desc(adjr2))
+
+# restart process round 7
+
+# store variable names in vector
+
+varlist7 <- varlist6[-4]
+
+# function to run lms
+
+models7 <- lapply(varlist7, function(x) {
+  lm(substitute(critics_score ~ imdb_rating+mpaa_rating+title_type+
+                  genre+thtr_rel_year+dvd_rel_year+
+                  i, list(i = as.name(x))), data = kept)
+})
+
+# grab adjusted r squared and output ranked in descending order
+
+adjr2<-NULL
+options(scipen=999)
+
+for (i in 1:length(models7)){
+  adjr2[[i]]<-summary(models7[[i]])$adj.r.squared
+}
+
+results7<-as.data.frame(cbind(varlist7, adjr2))
+
+results7 %>%
+  arrange(desc(adjr2))
+
+# restart process round 8
+
+# store variable names in vector
+
+varlist8 <- varlist7[-5]
+
+# function to run lms
+
+models8 <- lapply(varlist8, function(x) {
+  lm(substitute(critics_score ~ imdb_rating+mpaa_rating+title_type+
+                  genre+thtr_rel_year+dvd_rel_year+dvd_rel_day+
+                  i, list(i = as.name(x))), data = kept)
+})
+
+# grab adjusted r squared and output ranked in descending order
+
+adjr2<-NULL
+options(scipen=999)
+
+for (i in 1:length(models8)){
+  adjr2[[i]]<-summary(models8[[i]])$adj.r.squared
+}
+
+results8<-as.data.frame(cbind(varlist8, adjr2))
+
+results8 %>%
+  arrange(desc(adjr2))
+
+# restart process round 8
+
+# store variable names in vector
+
+varlist8 <- varlist7[-5]
+
+# function to run lms
+
+models8 <- lapply(varlist8, function(x) {
+  lm(substitute(critics_score ~ imdb_rating+mpaa_rating+title_type+
+                  genre+thtr_rel_year+dvd_rel_year+dvd_rel_day+
+                  i, list(i = as.name(x))), data = kept)
+})
+
+# grab adjusted r squared and output ranked in descending order
+
+adjr2<-NULL
+options(scipen=999)
+
+for (i in 1:length(models8)){
+  adjr2[[i]]<-summary(models8[[i]])$adj.r.squared
+}
+
+results8<-as.data.frame(cbind(varlist8, adjr2))
+
+results8 %>%
+  arrange(desc(adjr2))
 
 
+# restart process round 9
 
+# store variable names in vector
+
+varlist9 <- varlist8[-9]
+
+# function to run lms
+
+models9 <- lapply(varlist9, function(x) {
+  lm(substitute(critics_score ~ imdb_rating+mpaa_rating+title_type+
+                  genre+thtr_rel_year+dvd_rel_year+dvd_rel_day+
+                  best_dir_win+i, list(i = as.name(x))), data = kept)
+})
+
+# grab adjusted r squared and output ranked in descending order
+
+adjr2<-NULL
+options(scipen=999)
+
+for (i in 1:length(models9)){
+  adjr2[[i]]<-summary(models9[[i]])$adj.r.squared
+}
+
+results9<-as.data.frame(cbind(varlist9, adjr2))
+
+results9 %>%
+  arrange(desc(adjr2))
+
+# restart process round 10
+
+# store variable names in vector
+
+varlist10 <- varlist9[-5]
+
+# function to run lms
+
+models10 <- lapply(varlist10, function(x) {
+  lm(substitute(critics_score ~ imdb_rating+mpaa_rating+title_type+
+                  genre+thtr_rel_year+dvd_rel_year+dvd_rel_day+
+                  best_dir_win+best_pic_nom+
+                  i, list(i = as.name(x))), data = kept)
+})
+
+# grab adjusted r squared and output ranked in descending order
+
+adjr2<-NULL
+options(scipen=999)
+
+for (i in 1:length(models10)){
+  adjr2[[i]]<-summary(models10[[i]])$adj.r.squared
+}
+
+results10<-as.data.frame(cbind(varlist10, adjr2))
+
+results10 %>%
+  arrange(desc(adjr2))
+
+# restart process round 11
+
+# store variable names in vector
+
+varlist11 <- varlist10[-1]
+
+# function to run lms
+
+models11 <- lapply(varlist11, function(x) {
+  lm(substitute(critics_score ~ imdb_rating+mpaa_rating+title_type+
+                  genre+thtr_rel_year+dvd_rel_year+dvd_rel_day+
+                  best_dir_win+best_pic_nom+runtime+
+                  i, list(i = as.name(x))), data = kept)
+})
+
+# grab adjusted r squared and output ranked in descending order
+
+adjr2<-NULL
+options(scipen=999)
+
+for (i in 1:length(models11)){
+  adjr2[[i]]<-summary(models11[[i]])$adj.r.squared
+}
+
+results11<-as.data.frame(cbind(varlist11, adjr2))
+
+results11 %>%
+  arrange(desc(adjr2))
+
+# restart process round 12
+
+# store variable names in vector
+
+varlist12 <- varlist11[-7]
+
+# function to run lms
+
+models12 <- lapply(varlist12, function(x) {
+  lm(substitute(critics_score ~ imdb_rating+mpaa_rating+title_type+
+                  genre+thtr_rel_year+dvd_rel_year+dvd_rel_day+
+                  best_dir_win+best_pic_nom+runtime+top200_box+
+                  i, list(i = as.name(x))), data = kept)
+})
+
+# grab adjusted r squared and output ranked in descending order
+
+adjr2<-NULL
+options(scipen=999)
+
+for (i in 1:length(models12)){
+  adjr2[[i]]<-summary(models12[[i]])$adj.r.squared
+}
+
+results12<-as.data.frame(cbind(varlist12, adjr2))
+
+results12 %>%
+  arrange(desc(adjr2))
+
+# adj r2 went down on round 12 - go with model11
+
+final<-lm(critics_score ~ imdb_rating+mpaa_rating+title_type+
+                genre+thtr_rel_year+dvd_rel_year+dvd_rel_day+
+                best_dir_win+best_pic_nom+runtime+top200_box, data = kept)
+
+summary(final)
+
+qqnorm(final$residuals)
+hist(final$residuals)
+plot(final$fitted.values~final$residuals)
 
 
 

@@ -91,9 +91,11 @@ p1
 ```
 
 
-From the plot we see that the IMDb score and the audience score from Rotten Tomatoes have the highest correlation coefficient with the critic's score.  They are also highly correlated with each other, so we will need to use one or the other in our model.
+From the plot we see that the IMDb score and the audience score from Rotten Tomatoes have the highest correlation coefficient with the critic's score.  They are also highly correlated with each other, so I will need to use one or the other in my model.  IMDb number of votes is colinear with IMDb rating, so I will use only one of these two as well.
 
-We'll now look at how the critic's score breaks out by some of the categorical variables
+
+
+We'll now look at how the critic's score breaks out by some of the categorical variables.
 
 
 * * *
