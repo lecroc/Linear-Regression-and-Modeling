@@ -161,6 +161,8 @@ kept$audience_score<-NULL
 
 # Number of votes no linear relationship with critics_score so drop
 
+qqplot(keptnum$imdb_num_votes, keptnum$critics_score)
+
 kept$imdb_num_votes<-NULL
 
 # create df of independent variables

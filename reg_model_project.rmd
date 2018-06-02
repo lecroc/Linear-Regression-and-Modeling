@@ -16,6 +16,7 @@ library(ggplot2)
 library(dplyr)
 library(statsr)
 library(GGally)
+library(knitr)
 ```
 
 ### Load data
@@ -76,7 +77,45 @@ dim(kept)
 
 ```
 
-This code will select the numerical values in the data set and plot them in a correlation matrix.  This will allow us to see how these variables correlate with our dependant variable, and help us look for colinearity between independent variables.
+Next, we'll look at summary statistics for the numerical values in the data set:
+
+```{r}
+
+# summary statistics
+
+keptnum<-select_if(kept, is.numeric)
+
+s1<-summary(keptnum$runtime)
+s2<-summary(keptnum$thtr_rel_year)
+s3<-summary(keptnum$thtr_rel_month)
+s4<-summary(keptnum$thtr_rel_day)
+s5<-summary(keptnum$dvd_rel_year)
+s6<-summary(keptnum$dvd_rel_month)
+s7<-summary(keptnum$dvd_rel_day)
+s8<-summary(keptnum$imdb_rating)
+s9<-summary(keptnum$imdb_num_votes)
+s10<-summary(keptnum$audience_score)
+s11<-summary(keptnum$critics_score)
+
+Stats<-names(keptnum)
+
+sumtable<-as.data.frame(rbind(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11))
+
+sumtable<-as.data.frame(cbind(Stats, sumtable))
+
+sumtable<-sumtable %>%
+  mutate(Skew=ifelse(Mean>Median, "Right", "Left"))
+
+kable(sumtable)
+
+
+```
+
+
+We see from the summary statistics that the IMDb number of votes is exrremely right skewed.  Most of the films are between and hour and a half and two hours, with a few much longer.  The IMDb ratings and Rotten Tomatoes scores are left skewed with the ratings/scores bunching up a bit at the higher end of the range.
+
+
+The following code will select the numerical values in the data set and plot them in a correlation matrix.  This will allow us to see how these variables correlate with our dependant variable, and help us look for colinearity between independent variables. It also provides a density curve which will help us look at the distributions of the numeric variables.
 
 ```{r, fig.width=11, fig.height=13}
 
@@ -97,14 +136,72 @@ From the plot we see that the IMDb score and the audience score from Rotten Toma
 
 We'll now look at how the critic's score breaks out by some of the categorical variables.
 
+This plot looks at the critic's score by genre:
+
+```{r}
+p2<-ggplot(kept, aes(x=factor(genre), y=critics_score, fill=factor(genre)))+
+  geom_boxplot()+
+  theme(legend.position = "none", axis.text.x = element_text(angle = 60,hjust = 1))+
+  ggtitle("Critic's Score by Genre")
+
+p2
+```
+
+We see from this plot that documentaries and musicals have the highest average scores.
+
+This plot looks at critic's score by the film's rating:
+
+```{r}
+
+p3<-ggplot(kept, aes(x=factor(mpaa_rating), y=critics_score, fill=factor(mpaa_rating)))+
+  geom_boxplot()+
+  theme(legend.position = "none", axis.text.x = element_text(angle = 60,hjust = 1))+
+  ggtitle("Critic's Score by Rating")
+
+p3
+
+```
+
+We see from this plot that unrated films have the highest scores on average, and the PG=13 films have the lowest average scores.
+
+Now that we've taken a close look at the data set, it's time to start building our model.
+
 
 * * *
 
 ## Part 4: Modeling
 
-NOTE: Insert code chunks as needed by clicking on the "Insert a new code chunk" 
-button above. Make sure that your code is visible in the project you submit. 
-Delete this note when before you submit your work.
+First, I need to decide if I'm going to use the audience score or the IMDb rating in my model.  Based on my EDA, these two independent variables are tightly correlated with each other, so I need to use one or the other in my model.  To select which one, I will regress each against the critic's score and select the on with the highest adjusted R squared.
+
+```{r}
+
+tm1<-lm(critics_score~imdb_rating, data=kept)
+
+summary(tm1)
+
+tm2<-lm(critics_score~audience_score, data = kept)
+
+summary(tm2)
+
+kept$audience_score<-NULL
+
+```
+
+We see that the IMDb rating gives us a better adjusted R squared, so we will proceed using that variable.
+
+I will also exclude the IMDb number of votes variable as it does not have anywhere close to a linear relationship with the dependant variable.
+
+```{r}
+
+qqplot(keptnum$imdb_num_votes, keptnum$critics_score)
+
+kept$imdb_num_votes<-NULL
+
+
+```
+
+
+I will now build my model using forward selection with adjusted R squared as the selection metric.  I went with forward selection because it appears from the correlation matrix that I will have one or two variables explaining most of the variance.  I will use the adjusted R squared method as I am more interested in predicting the dependant variable than understanding the significance of the various predictors.
 
 * * *
 
