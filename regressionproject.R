@@ -33,14 +33,41 @@ kept<-kept[cc,]
 sum(is.na(kept))
 dim(kept)
 
-# check correlarions for colinearity
+# summary statistics
 
 keptnum<-select_if(kept, is.numeric)
+
+s1<-summary(keptnum$runtime)
+s2<-summary(keptnum$thtr_rel_year)
+s3<-summary(keptnum$thtr_rel_month)
+s4<-summary(keptnum$thtr_rel_day)
+s5<-summary(keptnum$dvd_rel_year)
+s6<-summary(keptnum$dvd_rel_month)
+s7<-summary(keptnum$dvd_rel_day)
+s8<-summary(keptnum$imdb_rating)
+s9<-summary(keptnum$imdb_num_votes)
+s10<-summary(keptnum$audience_score)
+s11<-summary(keptnum$critics_score)
+
+Stats<-names(keptnum)
+
+sumtable<-as.data.frame(rbind(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11))
+
+sumtable<-as.data.frame(cbind(names, sumtable))
+
+sumtable<-sumtable %>%
+  mutate(Skew=ifelse(Mean>Median, "Right", "Left"))
+
+sumtable
+
+# check for colinearity
 
 p1<-ggpairs(keptnum)+
   theme(legend.position = "none", axis.text.x = element_text(angle = 60,hjust = 1))
 
 p1
+
+
 
 
 # Factor plots
@@ -509,6 +536,26 @@ hist(final$residuals)
 plot(final$fitted.values~final$residuals)
 
 
+# Predict
+
+# The Revenant
+# La La Land
+# Get Out
+# The Space Between Us
+
+newdata<-read.csv("newdata.csv")
+
+preds<-as.data.frame(predict(final, newdata=newdata, interval="confidence", level=.95))
+
+Title<-c("The Revenant", "La La Land", "Get Out", "The Space Between Us")
+
+preds<-as.data.frame(cbind(Title, preds))
+
+names(preds)<-c("Title", "Predicted Score", "Lower 95%", "Upper 95%")
+
+preds$ActualScore<-newdata$critics_score
+
+preds
 
 
 

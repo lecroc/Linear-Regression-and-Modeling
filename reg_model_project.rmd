@@ -76,7 +76,7 @@ dim(kept)
 
 ```
 
-THis code will select the numerical values in the data set and plot them in a correlation matrix.  This will allow us to see how these variables correlate with our dependant variable, and help us look for colinearity between independent variables.
+This code will select the numerical values in the data set and plot them in a correlation matrix.  This will allow us to see how these variables correlate with our dependant variable, and help us look for colinearity between independent variables.
 
 ```{r, fig.width=11, fig.height=13}
 
