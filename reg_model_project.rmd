@@ -321,7 +321,7 @@ There do not seem to be anything but a random pattern here, so it seems we've me
 
 ## Part 5: Prediction
 
-I'll now use the predict function to predict the Rotten Tomatoes critic's score for the following four films:
+I'll now use the predict function to predict the Rotten Tomatoes critic's score for the following four films.  I collected the data for these movies from the IMDb website (https://www.imdb.com/), the Rotten Tomatoes website (https://www.rottentomatoes.com/), and the Box Office Mojo website (http://www.boxofficemojo.com/).
 
 - The Revenant
 - La La Land
