@@ -190,8 +190,10 @@ for (i in 1:length(models)){
 
 results1<-as.data.frame(cbind(varlist, adjr2))
 
-results1 %>%
+results1<-results1 %>%
   arrange(desc(adjr2))
+  
+  results1
 
 # restart process round 2
 
@@ -533,9 +535,58 @@ final<-lm(critics_score ~ imdb_rating+mpaa_rating+title_type+
 
 summary(final)
 
+# Diagnostics
+
+mean(final$residuals)
+
+par(mfrow=c(1,3))
+
 qqnorm(final$residuals)
 hist(final$residuals)
-plot(final$fitted.values~final$residuals)
+plot(final$residuals~final$fitted.values)
+
+# scatter plots of numeric x
+
+par(mfrow=c(2,3))
+
+plot(kept$critics_score~kept$runtime)
+abline(lm(kept$critics_score~kept$runtime), col="red", lwd=3)
+
+plot(kept$critics_score~kept$thtr_rel_year)
+abline(lm(kept$critics_score~kept$thtr_rel_year), col="red", lwd=3)
+
+plot(kept$critics_score~kept$dvd_rel_year)
+abline(lm(kept$critics_score~kept$dvd_rel_year), col="red", lwd=3)
+
+plot(kept$critics_score~kept$dvd_rel_day)
+abline(lm(kept$critics_score~kept$dvd_rel_day), col="red", lwd=3)
+
+plot(kept$critics_score~kept$imdb_rating)
+abline(lm(kept$critics_score~kept$imdb_rating), col="red", lwd=3)
+
+
+
+
+
+plot(final$residuals~kept$imdb_rating)
+plot(final$residuals~kept$thtr_rel_year)
+plot(final$residuals~kept$dvd_rel_year)
+plot(final$residuals~kept$dvd_rel_day)
+plot(final$residuals~kept$runtime)
+
+
+plot(final$residuals~kept$title_type)
+plot(final$residuals~kept$genre)
+plot(final$residuals~kept$best_dir_win)
+plot(final$residuals~kept$best_pic_nom)
+plot(final$residuals~kept$top200_box)
+plot(final$residuals~kept$top200_box)
+
+plot(final$residuals)
+
+acf(final$residuals, main="")
+
+plot(kept$critics_score~final$residuals)
 
 
 # Predict

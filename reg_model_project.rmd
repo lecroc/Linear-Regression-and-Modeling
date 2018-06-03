@@ -65,8 +65,6 @@ keep<-c("title_type", "genre","runtime","mpaa_rating", "thtr_rel_year",
 kept<-d1 %>%
   select(keep)
 
-dim(kept)
-
 # remove records with nas
 
 sum(is.na(kept))
@@ -203,13 +201,163 @@ kept$imdb_num_votes<-NULL
 
 I will now build my model using forward selection with adjusted R squared as the selection metric.  I went with forward selection because it appears from the correlation matrix that I will have one or two variables explaining most of the variance.  I will use the adjusted R squared method as I am more interested in predicting the dependant variable than understanding the significance of the various predictors.
 
+This code will run a linear model for each of the independent variables 
+against the critic's score and a assemble a table with the independent variables ranked by adjusted R squared:
+
+```{r}
+
+# create df of independent variables
+
+indvar<-kept[,-12]
+
+# store variable names in vector
+
+varlist <- names(indvar)
+
+# function to run lms
+
+models <- lapply(varlist, function(x) {
+  lm(substitute(critics_score ~ i, list(i = as.name(x))), data = kept)
+})
+
+# grab adjusted r squared and output ranked in descending order
+
+adjr2<-NULL
+options(scipen=999)
+
+for (i in 1:length(models)){
+  adjr2[[i]]<-summary(models[[i]])$adj.r.squared
+}
+
+results1<-as.data.frame(cbind(varlist, adjr2))
+
+results1<-results1 %>%
+  arrange(desc(adjr2))
+  
+  kable(results1)
+  
+```
+
+We see that the IMDb rating is the variable that results in the highest adjusted R squared.  This is not a surprise based on the correlation matrix from the EDA.
+
+I continued this process eleven more times, adding an additional variable to the model each time until the adjusted R squared went down instead of up.  The final selected model is as follows:
+
+```{r, fig.width=11, fig.height=13}
+
+final<-lm(critics_score ~ imdb_rating+mpaa_rating+title_type+
+                genre+thtr_rel_year+dvd_rel_year+dvd_rel_day+
+                best_dir_win+best_pic_nom+runtime+top200_box, data = kept)
+
+summary(final)
+
+```
+
+### Interpretation of Coefficients
+
+From the model summary we see that the intercept is -445, which is the critic's score we would expect if all of the independent variables were set to 0.  The significant numeric variables are the IMDb rating and the year of the theatrical release.  For each 1 point increase in the IMDb rating, we would expect the critic's score to increase 18.2 points on average.  For each increase in year, we would expect the critic's score to decrease .33 points.  This association is interesting as it indicates that newer movies tend to be rated lower than older movies by the contributing critics on the Rotten Tomatoes site.  Of the categorical variables, the genre of the movie returns a significant association if the movie is a drama.  A drama will add 8.54 points to the critic's score relative to the reference level - Action / Adventure.
+
+### Model Diagnostics
+
+I'll now check my model against the conditions for multiple linear regression.  First we'll make sure our residuals have a nearly normal distribution with a mean of 0.
+
+```{r, fig.width=11, fig.height=3}
+
+mean(final$residuals)
+
+par(mfrow=c(1,2))
+
+qqnorm(final$residuals)
+hist(final$residuals)
+
+```
+
+Next, we'll check to make sure the numeric independent variables have a linear relationship with our dependant variable.  We've already looked at this in the correlation matrix, but we'll look again here:
+
+```{r}
+
+par(mfrow=c(2,3))
+
+plot(kept$critics_score~kept$runtime)
+abline(lm(kept$critics_score~kept$runtime), col="red", lwd=3)
+
+plot(kept$critics_score~kept$thtr_rel_year)
+abline(lm(kept$critics_score~kept$thtr_rel_year), col="red", lwd=3)
+
+plot(kept$critics_score~kept$dvd_rel_year)
+abline(lm(kept$critics_score~kept$dvd_rel_year), col="red", lwd=3)
+
+plot(kept$critics_score~kept$dvd_rel_day)
+abline(lm(kept$critics_score~kept$dvd_rel_day), col="red", lwd=3)
+
+plot(kept$critics_score~kept$imdb_rating)
+abline(lm(kept$critics_score~kept$imdb_rating), col="red", lwd=3)
+
+```
+
+Aside from the IMDb rating, these relationships are pretty weak, but they still add a bit of additional information on our dependant variable based on the adjusted R squared method.
+
+Next we'll confirm the constant variability of the residuals by looking at a plot of the residuals vs. fitted values
+
+```{r}
+
+plot(final$residuals~final$fitted.values)
+
+```
+
+The residuals appear randomly distributed around 0, so this condition seems to be met.
+
+Finally, we'll check the independence of the residuals by plotting them against the order of data collection (index).
+
+```{r}
+
+plot(final$residuals)
+
+```
+
+There do not seem to be anything but a random pattern here, so it seems we've met all the conditions for multiple linear regression.  Let's now test the predictive power of the model with some new data.
+  
 * * *
 
 ## Part 5: Prediction
 
-NOTE: Insert code chunks as needed by clicking on the "Insert a new code chunk" 
-button above. Make sure that your code is visible in the project you submit. 
-Delete this note when before you submit your work.
+I'll now use the predict function to predict the Rotten Tomatoes critic's score for the following four films:
+
+- The Revenant
+- La La Land
+- Get Out
+- The Space Between us
+
+The first three films all have high critic's scores, however the score for the Revenant seems a bit low for a film that won two Oscars.  The Space Between Us has a very low critic's score - especially compared to the audience score.  I deliberately selected some extreme values to test the predictive powers of the model.  I expect I may lose a few points on the accuracy as a result, but let's see what happens.....
+
+The following code will predict the critics score for the films mentioned above and return a table with the predicted value, upper and lower bounds for the uncertainty based on a 95% confidence interval, and the actual critic's score for the film:
+
+```{r}
+
+# Predict
+
+# The Revenant
+# La La Land
+# Get Out
+# The Space Between Us
+
+newdata<-read.csv("newdata.csv")
+
+preds<-as.data.frame(predict(final, newdata=newdata, interval="confidence", level=.95))
+
+Title<-c("The Revenant", "La La Land", "Get Out", "The Space Between Us")
+
+preds<-as.data.frame(cbind(Title, preds))
+
+names(preds)<-c("Title", "Predicted Score", "Lower 95%", "Upper 95%")
+
+preds$ActualScore<-newdata$critics_score
+
+kable(preds)
+
+```
+
+
+
 
 * * *
 
