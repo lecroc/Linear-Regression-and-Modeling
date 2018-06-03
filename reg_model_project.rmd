@@ -1,10 +1,11 @@
 ---
 title: "Modeling and prediction for movies"
-output: 
-  html_document: 
+output:
+  html_document:
     fig_height: 4
     highlight: pygments
     theme: spacelab
+  word_document: default
 ---
 
 ## Setup
@@ -356,10 +357,16 @@ kable(preds)
 
 ```
 
-
+The model's confidence intervals includes the actual critic's score for two of the four films.  The model only missed badly on "The Space Between Us".  This isn't surprising as the audience metrics from both IMDb and Rotten Tomatoes are not nearly as bad as the critic's score.  Since the IMDb rating was the most significant predictor in the model, the model then over-estimated the critic's score for that film.
 
 
 * * *
 
 ## Part 6: Conclusion
+
+This analysis has shown me that there is a strong connection between film critics opinions and the public at large.  From the data set provided, the variable representing the public's opionion (IMDb score) accounted for the vast majority of the variance in the dependant variable (Rotten Tomatoe's critits score) explained by my model.  There can, however, be significant divergence of opinion, as evidenced by the prediction for "The Space Between Us".  I think it would be interesting to investigate additional data sources for critical reviews to include in subsequent models. 
+
+All of the r code for this analysis can be found here:
+
+https://github.com/lecroc/Linear-Regression-and-Modeling
 
